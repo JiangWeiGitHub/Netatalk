@@ -3,7 +3,14 @@ FROM ubuntu:16.04
 MAINTAINER JiangWeiGitHub <wei.jiang@winsuntech.cn>
 
 # update apt
-RUN apt-get update
+# DNS problem, turn ubuntu.uestc.edu.cn to 202.115.22.208
+RUN echo "deb http://202.115.22.208/ubuntu/ xenial main restricted universe multiverse" > /etc/apt/sources.list \
+  && echo "deb http://202.115.22.208/ubuntu/ xenial-backports main restricted universe multiverse" >> /etc/apt/sources.list \
+  && echo "deb http://202.115.22.208/ubuntu/ xenial-proposed main restricted universe multiverse" >> /etc/apt/sources.list \
+  && echo "deb http://202.115.22.208/ubuntu/ xenial-security main restricted universe multiverse" >> /etc/apt/sources.list \
+  && echo "deb http://202.115.22.208/ubuntu/ xenial-updates main restricted universe multiverse" >> /etc/apt/sources.list \
+  && apt-get update \
+  && apt-get -y upgrade
 
 # install essential packages with apt-get
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install \
@@ -40,11 +47,15 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get -y install \
   systemtap-sdt-dev \
   tracker
 
-# install netatalk
 RUN mkdir /download/ \
-  && cd /download/ \
-  && wget -O netatalk-3.1.10.tar.bz2 http://downloads.sourceforge.net/project/netatalk/netatalk/3.1.10/netatalk-3.1.10.tar.bz2?r=https%3A%2F%2Fsourceforge.net%2Fprojects%2Fnetatalk%2Ffiles%2F&ts=1481622866&use_mirror=jaist \
-  && tar Jxf netatalk-3.1.10.tar.bz2 \
+  && cd /download/
+
+WORKDIR /download/
+
+COPY netatalk-3.1.10.tar.bz2 /download/
+
+# install netatalk 3.1.10
+RUN tar jxf netatalk-3.1.10.tar.bz2 \
   && cd ./netatalk-3.1.10 \
   && ./configure \
     --with-init-style=debian-sysv \
@@ -59,7 +70,7 @@ RUN mkdir /download/ \
 
 # add user
 RUN useradd -ms /bin/bash timemachine \
-  && echo "123456" | passwd timemachine --stdin \
+  && echo "timemachine:123456" | chpasswd \
   && mkdir -p /data/timemachine \
   && chown -R timemachine:timemachine /data/timemachine \
   && echo "[TimeMachine]" > /usr/local/etc/afp.conf \
@@ -68,10 +79,14 @@ RUN useradd -ms /bin/bash timemachine \
   && echo "vol size limit = 1000000" >> /usr/local/etc/afp.conf \
   && echo "valid users = timemachine" >> /usr/local/etc/afp.conf
 
-# install avahi
+# install others
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y install \
-  && avahi-daemon \
-  && libc6-dev \
-  && libnss-mdns
+  libc6-dev \
+  libnss-mdns \
+  && apt-get clean
+  
+EXPOSE 548 636
 
-CMD ["systemctl start avahi-daemon.service && systemctl start netatalk.service"]
+VOLUME ["/data/timemachine"]
+
+CMD ["pwd"]
