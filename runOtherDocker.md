@@ -44,4 +44,4 @@
 
 + 下载并运行netatalk镜像
 
-  docker -H tcp://127.0.0.1:1688 run --detach --privileged --volume /run/wisnuc/volumes/1b038213-3b7f-4e8a-bfd9-a2f0096509e6/share:/media/share --volume /run/wisnuc/volumes/1b038213-3b7f-4e8a-bfd9-a2f0096509e6/timemachine:/media/timemachine --net "host" --env AVAHI=1 cptactionhank/netatalk:latest
+  docker -H tcp://127.0.0.1:1688 run --detach --privileged --volume /run/wisnuc/volumes/1b038213-3b7f-4e8a-bfd9-a2f0096509e6/share:/media/share --volume /run/wisnuc/volumes/1b038213-3b7f-4e8a-bfd9-a2f0096509e6/timemachine:/media/timemachine --net "host" -v /var/run/docker.sock:/var/run/docker.sock -v /run/systemd:/run/systemd -v /var/run/dbus/system_bus_socket:/var/run/dbus/system_bus_socket cptactionhank/netatalk:latest
